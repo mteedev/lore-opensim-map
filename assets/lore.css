@@ -1,0 +1,325 @@
+/**
+ * L.O.R.E. - Leaflet OpenSimulator Regional Explorer
+ * https://nerdypappy.com/lore
+ * Author: Gundahar Bravin
+ * License: GPL v2
+ */
+
+/* ------------------------------------------------------------------ */
+/*  MAP CONTAINER                                                       */
+/* ------------------------------------------------------------------ */
+
+.lore-map-container {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ------------------------------------------------------------------ */
+/*  POPUP                                                               */
+/* ------------------------------------------------------------------ */
+
+.lore-popup-wrap .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    padding: 0;
+    overflow: hidden;
+    min-width: 240px;
+}
+
+.lore-popup-wrap .leaflet-popup-content {
+    margin: 0;
+    padding: 0;
+}
+
+.lore-popup-wrap .leaflet-popup-tip {
+    background: #ffffff;
+}
+
+.lore-popup {
+    padding: 20px 24px 18px;
+    background: #ffffff;
+    text-align: center;
+}
+
+.lore-popup-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: #2563eb;
+    letter-spacing: 0.3px;
+}
+
+.lore-unknown {
+    color: #6b7280 !important;
+}
+
+.lore-popup-hr {
+    border: none;
+    border-top: 1px solid rgba(37, 99, 235, 0.15);
+    margin: 8px 0 14px;
+}
+
+.lore-popup-note {
+    font-size: 13px;
+    color: #9ca3af;
+    margin: 0 0 8px;
+    font-style: italic;
+}
+
+.lore-popup-coords {
+    font-size: 12px;
+    color: rgba(37, 99, 235, 0.6);
+    margin: 10px 0 0;
+    font-family: monospace;
+}
+
+/* ------------------------------------------------------------------ */
+/*  BUTTONS                                                             */
+/* ------------------------------------------------------------------ */
+
+.lore-btn {
+    display: block;
+    width: 100%;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none !important;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    box-sizing: border-box;
+}
+
+.lore-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+.lore-btn:active {
+    transform: translateY(0);
+}
+
+.lore-btn-teleport {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: #ffffff !important;
+    border: none;
+}
+
+.lore-btn-join {
+    background: rgba(37, 99, 235, 0.08);
+    color: #2563eb !important;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+/* ------------------------------------------------------------------ */
+/*  COORDINATE DISPLAY                                                  */
+/* ------------------------------------------------------------------ */
+
+.lore-coords {
+    background: rgba(0, 0, 0, 0.55);
+    color: #60a5fa;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: monospace;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/*  SEARCH                                                              */
+/* ------------------------------------------------------------------ */
+
+.lore-search-control {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #2563eb;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+    overflow: visible;
+}
+
+.lore-search-inner {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    gap: 6px;
+}
+
+.lore-search-icon {
+    font-size: 15px;
+    color: #9ca3af;
+    flex-shrink: 0;
+}
+
+.lore-search-control input {
+    border: none;
+    outline: none;
+    padding: 5px 4px;
+    font-size: 14px;
+    width: 200px;
+    background: transparent;
+    color: #111827;
+}
+
+.lore-search-control input::placeholder {
+    color: #9ca3af;
+}
+
+/* Dropdown results */
+.lore-search-results {
+    display: none;
+    position: absolute;
+    top: calc(100% + 2px);
+    left: -2px;
+    right: -2px;
+    background: #ffffff;
+    border: 2px solid #2563eb;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.lore-result-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.lore-result-item:last-child {
+    border-bottom: none;
+    border-radius: 0 0 8px 8px;
+}
+
+.lore-result-item:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+/* ------------------------------------------------------------------ */
+/*  DARK MODE                                                           */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-color-scheme: dark) {
+    .lore-popup {
+        background: #1f2937;
+    }
+    .lore-popup-wrap .leaflet-popup-content-wrapper {
+        background: #1f2937;
+    }
+    .lore-popup-wrap .leaflet-popup-tip {
+        background: #1f2937;
+    }
+    .lore-popup-note {
+        color: #9ca3af;
+    }
+    .lore-search-control {
+        background: #1f2937;
+    }
+    .lore-search-control input {
+        color: #f9fafb;
+    }
+    .lore-search-results {
+        background: #1f2937;
+    }
+    .lore-result-item {
+        color: #e5e7eb;
+        border-color: #374151;
+    }
+    .lore-result-item:hover {
+        background: #374151;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/*  FEATURED REGION MARKERS                                             */
+/* ------------------------------------------------------------------ */
+
+/* Pulsing glow */
+.lore-marker-pulse {
+    background: transparent !important;
+    border: none !important;
+}
+
+.lore-pulse-inner {
+    position: relative;
+    width: 40px;
+    height: 60px;
+}
+
+.lore-pulse-inner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10px;
+    width: 20px; height: 30px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow:
+        0 0 15px rgba(251, 191, 36, 0.7),
+        0 0 30px rgba(251, 191, 36, 0.5),
+        0 0 45px rgba(251, 191, 36, 0.3);
+    animation: lorePulse 2s ease-in-out infinite;
+}
+
+.lore-pulse-inner::after {
+    content: '';
+    position: absolute;
+    top: 7px; left: 17px;
+    width: 6px; height: 6px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.9);
+}
+
+@keyframes lorePulse {
+    0%, 100% {
+        box-shadow:
+            0 0 15px rgba(251, 191, 36, 0.7),
+            0 0 30px rgba(251, 191, 36, 0.5),
+            0 0 45px rgba(251, 191, 36, 0.3);
+    }
+    50% {
+        box-shadow:
+            0 0 25px rgba(251, 191, 36, 0.9),
+            0 0 50px rgba(251, 191, 36, 0.7),
+            0 0 70px rgba(251, 191, 36, 0.4);
+    }
+}
+
+/* Gold star */
+.lore-marker-star {
+    background: transparent !important;
+    border: none !important;
+    font-size: 32px;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+    animation: lorePulse 2s ease-in-out infinite;
+}
+
+/* Pin drop */
+.lore-marker-pin {
+    background: transparent !important;
+    border: none !important;
+}
+
+.lore-pin-inner {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 3px solid #fff;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+}

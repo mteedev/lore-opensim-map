@@ -178,6 +178,22 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
+## 📚 Full Documentation
+
+> **📖 Need help? Want detailed guides?**
+>
+> Visit the **[L.O.R.E. Wiki](https://github.com/mteedev/lore-opensim-map/wiki)** for comprehensive documentation:
+>
+> - **[Installation Guide](https://github.com/mteedev/lore-opensim-map/wiki/Installation-Guide)** - Step-by-step setup
+> - **[Configuration Guide](https://github.com/mteedev/lore-opensim-map/wiki/Configuration-Guide)** - Every setting explained
+> - **[Shortcode Examples](https://github.com/mteedev/lore-opensim-map/wiki/Shortcode-Examples)** - Practical usage examples
+> - **[Troubleshooting](https://github.com/mteedev/lore-opensim-map/wiki/Troubleshooting)** - Fix common issues
+> - **[FAQ](https://github.com/mteedev/lore-opensim-map/wiki/FAQ)** - Quick answers
+>
+> The Wiki has everything you need to get the most out of L.O.R.E.! 🚀
+
+---
+
 ## 📄 License
 
 GPL v2 or later — see [LICENSE](LICENSE)

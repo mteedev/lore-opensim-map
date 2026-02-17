@@ -3,6 +3,24 @@
 
 ---
 
+## Version 1.0.1 — Daily Auto-Sync
+
+### New Features
+- **Automatic Daily Region Sync**: Enable daily automatic synchronization in the admin panel
+- Sync runs at 3:00 AM server time every day (configurable via WordPress cron)
+- Shows next scheduled sync time in admin when enabled
+- Logs sync results to WordPress error log for monitoring
+- Checkbox toggle in admin - enable/disable anytime
+- Manual sync button still available for immediate updates
+
+### Technical
+- Uses WordPress `wp_cron` for scheduling
+- Runs in background without UI overhead
+- Same batch processing as manual sync (50 regions per batch)
+- Automatic cleanup of old schedules when disabled
+
+---
+
 ## Version 1.0.0 — Initial Release
 
 ### Features

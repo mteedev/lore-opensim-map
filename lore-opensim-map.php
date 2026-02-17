@@ -3,7 +3,7 @@
  * Plugin Name: L.O.R.E. - Leaflet OpenSimulator Regional Explorer
  * Plugin URI:  https://nerdypappy.com/lore
  * Description: A modern, interactive OpenSimulator grid map plugin powered by Leaflet.js. Features region search, teleport links, batch sync with progress bar, and fully customizable colors.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Gundahar Bravin
  * Author URI:  https://nerdypappy.com
  * License:     GPL v2 or later
@@ -13,7 +13,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('LORE_VERSION',    '1.0.0');
+define('LORE_VERSION',    '1.0.1');
 define('LORE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('LORE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
@@ -33,6 +33,11 @@ class LORE_OpenSim_Map {
             add_action('wp_ajax_nopriv_' . $action, array($this, 'ajax_' . $action));
         }
         add_action('wp_ajax_lore_sync_batch', array($this, 'ajax_lore_sync_batch'));
+        
+        // Cron for auto-sync
+        add_action('lore_daily_sync', array($this, 'cron_sync_regions'));
+        register_activation_hook(__FILE__, array($this, 'activate_cron'));
+        register_deactivation_hook(__FILE__, array($this, 'deactivate_cron'));
     }
 
     /* ------------------------------------------------------------------ */
@@ -161,6 +166,8 @@ class LORE_OpenSim_Map {
             'lore_accent_color', 'lore_button_color',
             // Featured region
             'lore_featured_region', 'lore_featured_marker',
+            // Auto-sync
+            'lore_auto_sync_enabled',
         );
         foreach ($settings as $s) {
             register_setting('lore_settings', $s);
@@ -336,8 +343,29 @@ class LORE_OpenSim_Map {
             <hr>
             <h2>🔄 Region Sync</h2>
             <p>Sync region data from your OpenSimulator database into WordPress. Regions are synced in batches of 50 to avoid timeouts.</p>
+            
+            <table class="form-table" style="margin-bottom:20px;">
+                <tr>
+                    <th>Automatic Daily Sync</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="lore_auto_sync_enabled" value="1" <?php checked(get_option('lore_auto_sync_enabled'), '1'); ?>>
+                            Enable daily automatic region sync at 3:00 AM server time
+                        </label>
+                        <p class="description">When enabled, L.O.R.E. will automatically sync regions from your database every day. You can still manually sync anytime using the button below.</p>
+                        <?php
+                        $next_scheduled = wp_next_scheduled('lore_daily_sync');
+                        if ($next_scheduled) {
+                            echo '<p class="description" style="color:#16a34a;">⏰ Next automatic sync: <strong>' . date('F j, Y g:i A', $next_scheduled) . '</strong></p>';
+                        }
+                        ?>
+                    </td>
+                </tr>
+            </table>
+            
+            <h3>Manual Sync</h3>
             <p>
-                <button type="button" id="lore-sync-btn" class="button button-primary button-large">Sync Regions from Grid</button>
+                <button type="button" id="lore-sync-btn" class="button button-primary button-large">Sync Regions Now</button>
             </p>
             <div id="lore-sync-wrap" style="display:none;max-width:500px;margin-top:15px;">
                 <div style="background:#e5e7eb;border-radius:8px;height:26px;overflow:hidden;margin-bottom:8px;">
@@ -546,6 +574,124 @@ class LORE_OpenSim_Map {
             wp_send_json_error('Error: ' . $e->getMessage());
         }
     }
+
+    /* ------------------------------------------------------------------ */
+    /*  CRON: AUTO-SYNC                                                     */
+    /* ------------------------------------------------------------------ */
+
+    public function activate_cron() {
+        if (get_option('lore_auto_sync_enabled') == '1') {
+            $this->schedule_cron();
+        }
+    }
+
+    public function deactivate_cron() {
+        wp_clear_scheduled_hook('lore_daily_sync');
+    }
+
+    private function schedule_cron() {
+        if (!wp_next_scheduled('lore_daily_sync')) {
+            wp_schedule_event(strtotime('tomorrow 3:00 AM'), 'daily', 'lore_daily_sync');
+        }
+    }
+
+    public function cron_sync_regions() {
+        // Only run if auto-sync is enabled
+        if (get_option('lore_auto_sync_enabled') != '1') {
+            return;
+        }
+
+        $host     = get_option('lore_db_host');
+        $dbname   = get_option('lore_db_name');
+        $user     = get_option('lore_db_user');
+        $pass     = get_option('lore_db_password');
+
+        if (empty($host) || empty($dbname) || empty($user)) {
+            error_log('L.O.R.E. Auto-Sync: Database credentials not configured');
+            return;
+        }
+
+        try {
+            $db = new mysqli($host, $user, $pass, $dbname);
+            if ($db->connect_error) {
+                error_log('L.O.R.E. Auto-Sync: Database connection failed - ' . $db->connect_error);
+                return;
+            }
+
+            global $wpdb;
+            $table = $wpdb->prefix . 'lore_regions';
+
+            // Clear existing regions
+            $wpdb->query("TRUNCATE TABLE $table");
+
+            // Get total count
+            $total_result = $db->query("SELECT COUNT(*) FROM regions");
+            $total = (int) $total_result->fetch_row()[0];
+
+            // Sync all regions in batches
+            $batch_size = 50;
+            $offset = 0;
+            $synced = 0;
+
+            while ($offset < $total) {
+                $result = $db->query(
+                    "SELECT uuid, regionName, locX, locY, serverURI 
+                     FROM regions 
+                     LIMIT $batch_size OFFSET $offset"
+                );
+
+                if (!$result) {
+                    error_log('L.O.R.E. Auto-Sync: Query failed at offset ' . $offset);
+                    break;
+                }
+
+                while ($row = $result->fetch_assoc()) {
+                    $rx = (int) $row['locX'];
+                    $ry = (int) $row['locY'];
+
+                    if ($rx >= 100000) { 
+                        $rx = (int)($rx / 256); 
+                        $ry = (int)($ry / 256); 
+                    }
+
+                    $wpdb->insert($table, array(
+                        'region_uuid' => $row['uuid'],
+                        'region_name' => $row['regionName'],
+                        'region_x'    => $rx,
+                        'region_y'    => $ry,
+                        'server_uri'  => $row['serverURI'],
+                        'status'      => 'active',
+                    ));
+                    $synced++;
+                }
+
+                $offset += $batch_size;
+            }
+
+            $db->close();
+            error_log('L.O.R.E. Auto-Sync: Successfully synced ' . $synced . ' regions');
+
+        } catch (Exception $e) {
+            error_log('L.O.R.E. Auto-Sync: Error - ' . $e->getMessage());
+        }
+    }
 }
 
 new LORE_OpenSim_Map();
+
+// Handle auto-sync setting changes
+add_action('updated_option', function($option) {
+    if ($option === 'lore_auto_sync_enabled') {
+        $enabled = get_option('lore_auto_sync_enabled');
+        
+        // Clear existing schedule
+        wp_clear_scheduled_hook('lore_daily_sync');
+        
+        // Schedule if enabled
+        if ($enabled == '1') {
+            if (!wp_next_scheduled('lore_daily_sync')) {
+                wp_schedule_event(strtotime('tomorrow 3:00 AM'), 'daily', 'lore_daily_sync');
+            }
+        }
+    }
+});

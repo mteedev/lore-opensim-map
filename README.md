@@ -182,7 +182,7 @@ GPL v2 or later — see [LICENSE](LICENSE)
 - [Leaflet.js](https://leafletjs.com/) — the amazing open-source mapping library
 - [OpenSimulator](http://opensimulator.org/) — the open-source virtual world platform
 - Compass rose image used with appropriate rights
-- Inspired by osquickmap by djphil
+
 
 ---
 

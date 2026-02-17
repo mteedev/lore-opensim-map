@@ -24,7 +24,17 @@ A modern, interactive WordPress plugin that displays your OpenSimulator grid as 
 
 ## 📸 Screenshots
 
-*(Add screenshots here after installation)*
+### 🗺️ Map Overview
+![Map Overview](screenshots/map-overview.png)
+
+### 🚀 Region Popup
+![Region Popup](screenshots/region-popup.png)
+
+### 🔍 Search in Action
+![Search](screenshots/search.png)
+
+### ⚙️ Admin Settings Panel
+![Admin Settings](screenshots/admin-settings.png)
 
 ---
 
@@ -150,6 +160,11 @@ lore-opensim-map/
 │   ├── lore.js             # Map initialization, popups, search
 │   ├── lore.css            # All styles
 │   └── compass.png         # Plugin icon
+├── screenshots/
+│   ├── map-overview.png
+│   ├── region-popup.png
+│   ├── search.png
+│   └── admin-settings.png
 ├── README.md
 ├── CHANGELOG.md
 └── LICENSE

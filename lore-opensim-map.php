@@ -3,7 +3,7 @@
  * Plugin Name: L.O.R.E. - Leaflet OpenSimulator Regional Explorer
  * Plugin URI:  https://nerdypappy.com/lore
  * Description: A modern, interactive OpenSimulator grid map plugin powered by Leaflet.js. Features region search, teleport links, batch sync with progress bar, and fully customizable colors.
- * Version:     1.0.1
+ * Version:     1.1.0
  * Author:      Gundahar Bravin
  * Author URI:  https://nerdypappy.com
  * License:     GPL v2 or later
@@ -13,7 +13,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('LORE_VERSION',    '1.0.1');
+define('LORE_VERSION',    '1.1.0');
 define('LORE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('LORE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
@@ -159,6 +159,11 @@ class LORE_OpenSim_Map {
             'lore_grid_name', 'lore_grid_url', 'lore_register_url',
             // Database
             'lore_db_host', 'lore_db_name', 'lore_db_user', 'lore_db_password',
+            // Additional databases
+            'lore_db2_enabled', 'lore_db2_host', 'lore_db2_name', 'lore_db2_user', 'lore_db2_password',
+            'lore_db3_enabled', 'lore_db3_host', 'lore_db3_name', 'lore_db3_user', 'lore_db3_password',
+            'lore_db4_enabled', 'lore_db4_host', 'lore_db4_name', 'lore_db4_user', 'lore_db4_password',
+            'lore_db5_enabled', 'lore_db5_host', 'lore_db5_name', 'lore_db5_user', 'lore_db5_password',
             // Map
             'lore_center_x', 'lore_center_y', 'lore_default_zoom',
             'lore_tile_url',
@@ -224,34 +229,111 @@ class LORE_OpenSim_Map {
                 </table>
 
                 <!-- DATABASE SETTINGS -->
-                <h2>🗄️ OpenSimulator Database</h2>
-                <p>Connect to your OpenSimulator <strong>Robust</strong> database so L.O.R.E. can sync region data.</p>
-                <table class="form-table">
-                    <tr>
-                        <th>Database Host</th>
-                        <td>
-                            <input type="text" name="lore_db_host" value="<?php echo esc_attr(get_option('lore_db_host', '')); ?>" class="regular-text" placeholder="localhost or IP address">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Database Name</th>
-                        <td>
-                            <input type="text" name="lore_db_name" value="<?php echo esc_attr(get_option('lore_db_name', '')); ?>" class="regular-text" placeholder="robust">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Database User</th>
-                        <td>
-                            <input type="text" name="lore_db_user" value="<?php echo esc_attr(get_option('lore_db_user', '')); ?>" class="regular-text" placeholder="opensim_user">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Database Password</th>
-                        <td>
-                            <input type="password" name="lore_db_password" value="<?php echo esc_attr(get_option('lore_db_password', '')); ?>" class="regular-text">
-                        </td>
-                    </tr>
-                </table>
+                <h2>🗄️ OpenSimulator Database(s)</h2>
+                <p>Connect to your OpenSimulator <strong>Robust</strong> database(s) so L.O.R.E. can sync region data.</p>
+                <p style="color:#6b7280;font-size:13px;margin-bottom:20px;">💡 <strong>For load-balanced grids:</strong> If your grid shards regions across multiple databases, enable additional databases below.</p>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1200px;">
+                    
+                    <!-- PRIMARY DATABASE (LEFT COLUMN) -->
+                    <div style="border:2px solid #2563eb;border-radius:8px;padding:20px;background:#f8fafc;">
+                        <h3 style="margin-top:0;color:#2563eb;">Primary Database</h3>
+                        <table class="form-table" style="margin:0;">
+                            <tr>
+                                <th style="padding-left:0;">Database Host</th>
+                                <td>
+                                    <input type="text" name="lore_db_host" value="<?php echo esc_attr(get_option('lore_db_host', '')); ?>" class="regular-text" placeholder="localhost or IP">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="padding-left:0;">Database Name</th>
+                                <td>
+                                    <input type="text" name="lore_db_name" value="<?php echo esc_attr(get_option('lore_db_name', '')); ?>" class="regular-text" placeholder="robust">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="padding-left:0;">User</th>
+                                <td>
+                                    <input type="text" name="lore_db_user" value="<?php echo esc_attr(get_option('lore_db_user', '')); ?>" class="regular-text" placeholder="opensim_user">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="padding-left:0;">Password</th>
+                                <td>
+                                    <input type="password" name="lore_db_password" value="<?php echo esc_attr(get_option('lore_db_password', '')); ?>" class="regular-text">
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- ADDITIONAL DATABASES (RIGHT COLUMN) -->
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+                        
+                        <?php for ($i = 2; $i <= 5; $i++): 
+                            $enabled = get_option("lore_db{$i}_enabled") == '1';
+                        ?>
+                        
+                        <!-- Database <?php echo $i; ?> -->
+                        <div style="border:1px solid #d1d5db;border-radius:8px;padding:16px;background:#fafafa;">
+                            <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;">
+                                <input type="checkbox" 
+                                       name="lore_db<?php echo $i; ?>_enabled" 
+                                       value="1" 
+                                       <?php checked($enabled); ?>
+                                       class="lore-db-toggle"
+                                       data-db="<?php echo $i; ?>"
+                                       style="width:18px;height:18px;">
+                                <strong style="font-size:14px;">Database <?php echo $i; ?></strong>
+                            </label>
+                            
+                            <div id="lore-db<?php echo $i?>-fields" style="<?php echo $enabled ? '' : 'display:none;'; ?>">
+                                <table class="form-table" style="margin:0;">
+                                    <tr>
+                                        <th style="padding:4px 0;width:80px;font-size:13px;">Host</th>
+                                        <td style="padding:4px 0;">
+                                            <input type="text" name="lore_db<?php echo $i; ?>_host" value="<?php echo esc_attr(get_option("lore_db{$i}_host", '')); ?>" class="regular-text" placeholder="db<?php echo $i; ?>.yourgrid.com" style="width:100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th style="padding:4px 0;font-size:13px;">Database</th>
+                                        <td style="padding:4px 0;">
+                                            <input type="text" name="lore_db<?php echo $i; ?>_name" value="<?php echo esc_attr(get_option("lore_db{$i}_name", '')); ?>" class="regular-text" placeholder="robust<?php echo $i; ?>" style="width:100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th style="padding:4px 0;font-size:13px;">User</th>
+                                        <td style="padding:4px 0;">
+                                            <input type="text" name="lore_db<?php echo $i; ?>_user" value="<?php echo esc_attr(get_option("lore_db{$i}_user", '')); ?>" class="regular-text" placeholder="lore_user" style="width:100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th style="padding:4px 0;font-size:13px;">Password</th>
+                                        <td style="padding:4px 0;">
+                                            <input type="password" name="lore_db<?php echo $i; ?>_password" value="<?php echo esc_attr(get_option("lore_db{$i}_password", '')); ?>" class="regular-text" style="width:100%;">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <?php endfor; ?>
+                        
+                    </div>
+                </div>
+                
+                <script>
+                jQuery(document).ready(function($) {
+                    $('.lore-db-toggle').on('change', function() {
+                        var dbNum = $(this).data('db');
+                        var fields = $('#lore-db' + dbNum + '-fields');
+                        if ($(this).is(':checked')) {
+                            fields.slideDown(200);
+                        } else {
+                            fields.slideUp(200);
+                        }
+                    });
+                });
+                </script>
 
                 <!-- MAP SETTINGS -->
                 <h2>🗺️ Map Settings</h2>
@@ -506,69 +588,128 @@ class LORE_OpenSim_Map {
     public function ajax_lore_sync_batch() {
         check_ajax_referer('lore_sync', 'nonce');
 
-        $host       = get_option('lore_db_host');
-        $dbname     = get_option('lore_db_name');
-        $user       = get_option('lore_db_user');
-        $pass       = get_option('lore_db_password');
         $offset     = intval($_POST['offset']);
         $batch_size = intval($_POST['batch_size']) ?: 50;
         $clear      = intval($_POST['clear_first']);
 
-        if (empty($host) || empty($dbname) || empty($user)) {
-            wp_send_json_error('Database settings not configured. Please fill in the Database section in L.O.R.E. settings.');
+        global $wpdb;
+        $table = $wpdb->prefix . 'lore_regions';
+
+        if ($clear) {
+            $wpdb->query("TRUNCATE TABLE $table");
+        }
+
+        // Collect all enabled databases
+        $databases = array();
+        
+        // Primary database
+        $host1 = get_option('lore_db_host');
+        $name1 = get_option('lore_db_name');
+        $user1 = get_option('lore_db_user');
+        $pass1 = get_option('lore_db_password');
+        
+        if (!empty($host1) && !empty($name1) && !empty($user1)) {
+            $databases[] = array(
+                'host' => $host1,
+                'name' => $name1,
+                'user' => $user1,
+                'pass' => $pass1,
+                'label' => 'Primary Database'
+            );
+        }
+        
+        // Additional databases 2-5
+        for ($i = 2; $i <= 5; $i++) {
+            if (get_option("lore_db{$i}_enabled") == '1') {
+                $host = get_option("lore_db{$i}_host");
+                $name = get_option("lore_db{$i}_name");
+                $user = get_option("lore_db{$i}_user");
+                $pass = get_option("lore_db{$i}_password");
+                
+                if (!empty($host) && !empty($name) && !empty($user)) {
+                    $databases[] = array(
+                        'host' => $host,
+                        'name' => $name,
+                        'user' => $user,
+                        'pass' => $pass,
+                        'label' => "Database {$i}"
+                    );
+                }
+            }
+        }
+
+        if (empty($databases)) {
+            wp_send_json_error('No database credentials configured. Please configure at least the Primary Database.');
             return;
         }
 
         try {
-            $db = new mysqli($host, $user, $pass, $dbname);
-            if ($db->connect_error) {
-                wp_send_json_error('Database connection failed: ' . $db->connect_error);
-                return;
+            $total_regions = 0;
+            $synced_count = 0;
+            $errors = array();
+            
+            // Loop through all databases
+            foreach ($databases as $db_config) {
+                $db = new mysqli($db_config['host'], $db_config['user'], $db_config['pass'], $db_config['name']);
+                
+                if ($db->connect_error) {
+                    $errors[] = $db_config['label'] . ': Connection failed';
+                    continue;
+                }
+
+                // Get total count from this database
+                $count_result = $db->query("SELECT COUNT(*) FROM regions");
+                if ($count_result) {
+                    $db_total = (int) $count_result->fetch_row()[0];
+                    $total_regions += $db_total;
+                }
+
+                // Fetch batch from this database
+                $result = $db->query(
+                    "SELECT uuid, regionName, locX, locY, serverURI 
+                     FROM regions 
+                     LIMIT $batch_size OFFSET $offset"
+                );
+
+                if ($result) {
+                    while ($row = $result->fetch_assoc()) {
+                        $rx = (int) $row['locX'];
+                        $ry = (int) $row['locY'];
+
+                        // OpenSim stores coords in meters (>= 100000) or already as region coords
+                        if ($rx >= 100000) { 
+                            $rx = (int)($rx / 256); 
+                            $ry = (int)($ry / 256); 
+                        }
+
+                        // Insert or update (in case of duplicate UUIDs across databases)
+                        $wpdb->replace($table, array(
+                            'region_uuid' => $row['uuid'],
+                            'region_name' => $row['regionName'],
+                            'region_x'    => $rx,
+                            'region_y'    => $ry,
+                            'server_uri'  => $row['serverURI'],
+                            'status'      => 'active',
+                        ));
+                        $synced_count++;
+                    }
+                }
+
+                $db->close();
             }
-
-            global $wpdb;
-            $table = $wpdb->prefix . 'lore_regions';
-
-            if ($clear) {
-                $wpdb->query("TRUNCATE TABLE $table");
-            }
-
-            // Total count
-            $total = (int) $db->query("SELECT COUNT(*) FROM regions")->fetch_row()[0];
-
-            // Fetch batch
-            $result = $db->query(
-                "SELECT uuid, regionName, locX, locY, serverURI 
-                 FROM regions 
-                 LIMIT $batch_size OFFSET $offset"
+            
+            $response = array(
+                'synced' => $synced_count, 
+                'total' => $total_regions, 
+                'offset' => $offset,
+                'databases' => count($databases)
             );
-
-            if (!$result) {
-                wp_send_json_error('Query failed: ' . $db->error);
-                return;
+            
+            if (!empty($errors)) {
+                $response['warnings'] = $errors;
             }
 
-            $count = 0;
-            while ($row = $result->fetch_assoc()) {
-                $rx = (int) $row['locX'];
-                $ry = (int) $row['locY'];
-
-                // OpenSim stores coords in meters (>= 100000) or already as region coords
-                if ($rx >= 100000) { $rx = (int)($rx / 256); $ry = (int)($ry / 256); }
-
-                $wpdb->insert($table, array(
-                    'region_uuid' => $row['uuid'],
-                    'region_name' => $row['regionName'],
-                    'region_x'    => $rx,
-                    'region_y'    => $ry,
-                    'server_uri'  => $row['serverURI'],
-                    'status'      => 'active',
-                ));
-                $count++;
-            }
-
-            $db->close();
-            wp_send_json_success(array('synced' => $count, 'total' => $total, 'offset' => $offset));
+            wp_send_json_success($response);
 
         } catch (Exception $e) {
             wp_send_json_error('Error: ' . $e->getMessage());
@@ -596,80 +737,87 @@ class LORE_OpenSim_Map {
     }
 
     public function cron_sync_regions() {
-        // Only run if auto-sync is enabled
-        if (get_option('lore_auto_sync_enabled') != '1') {
-            return;
+        if (get_option('lore_auto_sync_enabled') != '1') return;
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'lore_regions';
+        $wpdb->query("TRUNCATE TABLE $table");
+
+        // Collect all enabled databases
+        $databases = array();
+        
+        // Primary
+        $host1 = get_option('lore_db_host');
+        $name1 = get_option('lore_db_name');
+        $user1 = get_option('lore_db_user');
+        $pass1 = get_option('lore_db_password');
+        if (!empty($host1) && !empty($name1) && !empty($user1)) {
+            $databases[] = array($host1, $user1, $pass1, $name1, 'Primary');
+        }
+        
+        // Additional 2-5
+        for ($i = 2; $i <= 5; $i++) {
+            if (get_option("lore_db{$i}_enabled") == '1') {
+                $h = get_option("lore_db{$i}_host");
+                $n = get_option("lore_db{$i}_name");
+                $u = get_option("lore_db{$i}_user");
+                $p = get_option("lore_db{$i}_password");
+                if (!empty($h) && !empty($n) && !empty($u)) {
+                    $databases[] = array($h, $u, $p, $n, "DB{$i}");
+                }
+            }
         }
 
-        $host     = get_option('lore_db_host');
-        $dbname   = get_option('lore_db_name');
-        $user     = get_option('lore_db_user');
-        $pass     = get_option('lore_db_password');
-
-        if (empty($host) || empty($dbname) || empty($user)) {
-            error_log('L.O.R.E. Auto-Sync: Database credentials not configured');
+        if (empty($databases)) {
+            error_log('L.O.R.E. Auto-Sync: No databases configured');
             return;
         }
 
         try {
-            $db = new mysqli($host, $user, $pass, $dbname);
-            if ($db->connect_error) {
-                error_log('L.O.R.E. Auto-Sync: Database connection failed - ' . $db->connect_error);
-                return;
-            }
-
-            global $wpdb;
-            $table = $wpdb->prefix . 'lore_regions';
-
-            // Clear existing regions
-            $wpdb->query("TRUNCATE TABLE $table");
-
-            // Get total count
-            $total_result = $db->query("SELECT COUNT(*) FROM regions");
-            $total = (int) $total_result->fetch_row()[0];
-
-            // Sync all regions in batches
-            $batch_size = 50;
-            $offset = 0;
-            $synced = 0;
-
-            while ($offset < $total) {
-                $result = $db->query(
-                    "SELECT uuid, regionName, locX, locY, serverURI 
-                     FROM regions 
-                     LIMIT $batch_size OFFSET $offset"
-                );
-
-                if (!$result) {
-                    error_log('L.O.R.E. Auto-Sync: Query failed at offset ' . $offset);
-                    break;
+            $total_synced = 0;
+            
+            foreach ($databases as list($host, $user, $pass, $dbname, $label)) {
+                $db = new mysqli($host, $user, $pass, $dbname);
+                if ($db->connect_error) {
+                    error_log("L.O.R.E. Auto-Sync {$label}: Connection failed");
+                    continue;
                 }
 
-                while ($row = $result->fetch_assoc()) {
-                    $rx = (int) $row['locX'];
-                    $ry = (int) $row['locY'];
+                $count_result = $db->query("SELECT COUNT(*) FROM regions");
+                $total = $count_result ? (int) $count_result->fetch_row()[0] : 0;
+                $synced = 0;
 
-                    if ($rx >= 100000) { 
-                        $rx = (int)($rx / 256); 
-                        $ry = (int)($ry / 256); 
+                $batch_size = 50;
+                $offset = 0;
+
+                while ($offset < $total) {
+                    $result = $db->query("SELECT uuid, regionName, locX, locY, serverURI FROM regions LIMIT $batch_size OFFSET $offset");
+                    if (!$result) break;
+
+                    while ($row = $result->fetch_assoc()) {
+                        $rx = (int) $row['locX'];
+                        $ry = (int) $row['locY'];
+                        if ($rx >= 100000) { $rx = (int)($rx / 256); $ry = (int)($ry / 256); }
+
+                        $wpdb->replace($table, array(
+                            'region_uuid' => $row['uuid'],
+                            'region_name' => $row['regionName'],
+                            'region_x' => $rx,
+                            'region_y' => $ry,
+                            'server_uri' => $row['serverURI'],
+                            'status' => 'active',
+                        ));
+                        $synced++;
                     }
-
-                    $wpdb->insert($table, array(
-                        'region_uuid' => $row['uuid'],
-                        'region_name' => $row['regionName'],
-                        'region_x'    => $rx,
-                        'region_y'    => $ry,
-                        'server_uri'  => $row['serverURI'],
-                        'status'      => 'active',
-                    ));
-                    $synced++;
+                    $offset += $batch_size;
                 }
 
-                $offset += $batch_size;
+                $db->close();
+                $total_synced += $synced;
+                error_log("L.O.R.E. Auto-Sync {$label}: Synced {$synced} regions");
             }
 
-            $db->close();
-            error_log('L.O.R.E. Auto-Sync: Successfully synced ' . $synced . ' regions');
+            error_log("L.O.R.E. Auto-Sync: Total synced {$total_synced} regions from " . count($databases) . " database(s)");
 
         } catch (Exception $e) {
             error_log('L.O.R.E. Auto-Sync: Error - ' . $e->getMessage());

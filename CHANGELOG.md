@@ -3,6 +3,38 @@
 
 ---
 
+## Version 1.1.0 — Multiple Database Support
+
+### New Features
+- **Multi-Database Support for Load-Balanced Grids**: Connect up to 5 databases simultaneously
+- Side-by-side admin UI: Primary database on left, additional databases on right
+- Toggle switches to enable/disable databases 2-5 as needed
+- Automatic region deduplication across databases (uses UUID)
+- Sync status shows how many databases were queried
+- Auto-sync works across all enabled databases
+
+### UI Improvements
+- Beautiful two-column layout in admin panel
+- Primary database always visible in blue-bordered box
+- Additional databases appear in expandable sections
+- Smooth slide animations when toggling databases
+- Compact form layouts for additional databases
+
+### Technical
+- Updated `ajax_lore_sync_batch()` to loop through all enabled databases
+- Updated `cron_sync_regions()` to support multiple databases
+- Uses `REPLACE` instead of `INSERT` to handle duplicate UUIDs gracefully
+- Logs show which database each batch came from
+- Settings stored: `lore_db2_enabled`, `lore_db2_host`, etc. (through db5)
+
+### Use Cases
+- **Load-Balanced Grids**: Regions sharded across multiple Robust databases
+- **Multi-Server Setups**: Different database servers for different regions
+- **Migration Scenarios**: Sync from old + new database simultaneously
+- **Testing**: Combine production and test regions in one map
+
+---
+
 ## Version 1.0.1 — Daily Auto-Sync
 
 ### New Features

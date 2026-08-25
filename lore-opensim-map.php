@@ -3,7 +3,7 @@
  * Plugin Name: L.O.R.E. - Leaflet OpenSimulator Regional Explorer
  * Plugin URI:  https://nerdypappy.com/lore
  * Description: A modern, interactive OpenSimulator grid map plugin powered by Leaflet.js. Features region search, teleport links, batch sync with progress bar, and fully customizable colors.
- * Version:     1.1.0
+ * Version:     1.1.1
  * Author:      Gundahar Bravin
  * Author URI:  https://nerdypappy.com
  * License:     GPL v2 or later
@@ -13,7 +13,7 @@
 
 if (!defined('ABSPATH')) exit;
 
-define('LORE_VERSION',    '1.1.0');
+define('LORE_VERSION',    '1.1.1');
 define('LORE_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('LORE_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
@@ -113,6 +113,7 @@ class LORE_OpenSim_Map {
             'center_x' => get_option('lore_center_x',        '1000'),
             'center_y' => get_option('lore_center_y',        '1000'),
             'grid_url' => get_option('lore_grid_url',        ''),
+            'tile_url' => get_option('lore_tile_url',        ''),
         ), $atts);
 
         $map_id = 'lore-map-' . uniqid();
@@ -124,7 +125,8 @@ class LORE_OpenSim_Map {
              data-zoom="<?php echo esc_attr($atts['zoom']); ?>"
              data-center-x="<?php echo esc_attr($atts['center_x']); ?>"
              data-center-y="<?php echo esc_attr($atts['center_y']); ?>"
-             data-grid-url="<?php echo esc_attr($atts['grid_url']); ?>">
+             data-grid-url="<?php echo esc_attr($atts['grid_url']); ?>"
+             data-tile-url="<?php echo esc_attr($atts['tile_url']); ?>">
         </div>
         <script>
         jQuery(document).ready(function() {
@@ -341,8 +343,15 @@ class LORE_OpenSim_Map {
                     <tr>
                         <th>Map Tile URL</th>
                         <td>
-                            <input type="text" name="lore_tile_url" value="<?php echo esc_attr(get_option('lore_tile_url', '')); ?>" class="large-text" placeholder="http://yourgrid.com:9000/index.php?method=MapItems&...">
-                            <p class="description">Your grid's Warp3D map tile URL. Leave blank to use the Grid URL above.</p>
+                            <input type="text" name="lore_tile_url" value="<?php echo esc_attr(get_option('lore_tile_url', '')); ?>" class="large-text" placeholder="http://yourgrid.com:9000/index.php?method=map&zoom={z}&x={x}&y={y}">
+                            <p class="description">
+                                <strong>Required for map tiles to display.</strong> Must include the placeholders <code>{z}</code>, <code>{x}</code>, and <code>{y}</code> — L.O.R.E. replaces these with each tile's zoom/coordinates when the map loads.<br>
+                                Left blank, no map tiles will be shown (region markers and search will still work).<br><br>
+                                <strong>Common formats:</strong><br>
+                                &nbsp;&nbsp;Warp3D (dynamic): <code>http://yourgrid.com:9000/index.php?method=map&amp;zoom={z}&amp;x={x}&amp;y={y}</code><br>
+                                &nbsp;&nbsp;Static tile files: <code>http://yourgrid.com:8002/map-{z}-{x}-{y}-objects.jpg</code><br><br>
+                                Test your exact URL (with real numbers in place of {z}/{x}/{y}) directly in your browser first — if a tile image loads there, the same pattern will work here.
+                            </p>
                         </td>
                     </tr>
                     <tr>

@@ -3,6 +3,34 @@
 
 ---
 
+## Version 1.1.1 — Map Tile URL Fix
+
+### Fixed
+- **Map Tile URL setting now actually works.** Previously it was saved to the
+  database and shown in Settings, but never connected to the map — the tile
+  layer silently reused the Grid URL field instead (which has no `{z}`/`{x}`/`{y}`
+  placeholders and is meant only for teleport links). Tiles would only appear
+  by coincidence on setups where Grid URL happened to double as a working tile
+  pattern.
+- Grid URL and Map Tile URL are now fully independent: Grid URL builds
+  `hop://` teleport links only, Map Tile URL builds map tile image requests only.
+- Left blank, Map Tile URL now shows a clean ocean-blue background instead of
+  broken image icons.
+
+### Changed
+- Settings page description for Map Tile URL rewritten with concrete examples
+  (Warp3D dynamic and static tile file formats) and an explicit reminder that
+  `{z}`, `{x}`, and `{y}` placeholders are required.
+- `tile_url` added as a shortcode override parameter, matching the existing
+  `grid_url` pattern.
+
+### Note for Upgraders
+If your map tiles were not displaying before this update, re-check your Map
+Tile URL setting under Settings → L.O.R.E. Map — it likely was never being
+read by the map at all, regardless of what was entered there.
+
+---
+
 ## Version 1.1.0 — Multiple Database Support
 
 ### New Features

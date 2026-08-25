@@ -16,7 +16,13 @@ function initLORE(mapId) {
         centerX:  parseInt(container.dataset.centerX) || 1000,
         centerY:  parseInt(container.dataset.centerY) || 1000,
         gridUrl:  container.dataset.gridUrl           || '',
+        tileUrl:  container.dataset.tileUrl           || '',
     };
+
+    // 1x1 transparent GIF — used when no Map Tile URL is configured, so
+    // Leaflet has no broken-image icons to draw. The ocean-blue background
+    // color set on the container below shows through instead.
+    var BLANK_TILE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7';
 
     // Pull colors + settings from localized PHP data
     var accentColor  = (typeof lore_settings !== 'undefined') ? lore_settings.accent_color  : '#2563eb';
@@ -31,12 +37,15 @@ function initLORE(mapId) {
     // ----------------------------------------------------------------
     var LORETileLayer = L.TileLayer.extend({
         getTileUrl: function(coords) {
+            // No Map Tile URL configured — return a blank tile so the
+            // ocean-colored background shows instead of a broken image icon.
+            if (!config.tileUrl) return BLANK_TILE;
+
             var z = this._getZoomForUrl();
             var rpt = Math.pow(2, z - 1);
             var x   = coords.x * rpt;
             var y   = (Math.abs(coords.y) - 1) * rpt;
-            var base = config.gridUrl || '';
-            return base
+            return config.tileUrl
                 .replace('{z}', z)
                 .replace('{x}', x)
                 .replace('{y}', y);
@@ -60,12 +69,16 @@ function initLORE(mapId) {
         '<a href="https://nerdypappy.com/lore" target="_blank">L.O.R.E.</a>'
     );
 
+    // Default ocean-blue background so unconfigured/empty tile areas read as
+    // water rather than a blank gray or white gap.
+    container.style.background = '#0b3d5c';
+
     // Tile layer
-    new LORETileLayer(config.gridUrl, {
+    new LORETileLayer(config.tileUrl, {
         attribution: gridName,
         maxZoom: 8, minZoom: 1,
         zoomOffset: 1, zoomReverse: true,
-        tileSize: 256, errorTileUrl: ''
+        tileSize: 256, errorTileUrl: BLANK_TILE
     }).addTo(map);
 
     // Store instance
